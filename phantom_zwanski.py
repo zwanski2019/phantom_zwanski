@@ -1,13 +1,11 @@
-Enterimport streamlit as st
+import streamlit as st
 import urllib.parse
 import json
+import importlib.util
 import re
 import socket
-import hashlib
-import struct
 import base64
 import time
-import ipaddress
 from datetime import datetime
 from collections import defaultdict
 
@@ -24,11 +22,7 @@ try:
 except ImportError:
     HAS_MMH3 = False
 
-try:
-    import dns.resolver
-    HAS_DNS = True
-except ImportError:
-    HAS_DNS = False
+HAS_DNS = importlib.util.find_spec("dns.resolver") is not None
 
 # ── PAGE CONFIG ───────────────────────────────────────────────
 st.set_page_config(
@@ -726,7 +720,7 @@ def generate_dorks(t: dict, tech: list, kw_raw: str,
     add("FOFA", C, "Open admin panels", f'domain="{d}" && title="dashboard" && status_code="200"', f"https://fofa.info/result?qbase64={base64.b64encode(f'domain=\"{d}\" && title=\"dashboard\" && status_code=\"200\"'.encode()).decode()}")
     add("FOFA", C, "Database ports", f'domain="{d}" && (port="3306" || port="5432" || port="27017" || port="6379")', f"https://fofa.info/result?qbase64={base64.b64encode(f'domain=\"{d}\" && (port=\"3306\" || port=\"5432\" || port=\"27017\" || port=\"6379\")'.encode()).decode()}")
     add("FOFA", C, "Non-std services", f'domain="{d}" && (port="8080" || port="8443" || port="9090" || port="4848")', f"https://fofa.info/result?qbase64={base64.b64encode(f'domain=\"{d}\" && (port=\"8080\" || port=\"8443\")'.encode()).decode()}")
-    add("FOFA", C, "IP range sweep", f'ip="{asn_data.get("ip","")}/24" && status_code="200"' if asn_data.get("ip") else f'domain="{d}" && status_code="200"', f"https://fofa.info/")
+    add("FOFA", C, "IP range sweep", f'ip="{asn_data.get("ip","")}/24" && status_code="200"' if asn_data.get("ip") else f'domain="{d}" && status_code="200"', "https://fofa.info/")
 
     # ══ ZOOMEYE ═══════════════════════════════════════════════
     C = "ZoomEye Intelligence"
@@ -772,7 +766,7 @@ def generate_dorks(t: dict, tech: list, kw_raw: str,
     add("Leak", C, "Pastebin credential dump", f'site:pastebin.com "{d}" password OR credential OR dump OR leak')
     add("Leak", C, "Gist secrets", f'site:gist.github.com "{d}" password OR token OR key OR secret')
     add("Leak", C, "Publicly indexed breaches", f'"{d}" filetype:txt OR filetype:csv "password" site:archive.org OR site:mega.nz')
-    add("Leak", C, "HaveIBeenPwned check", d, f"https://haveibeenpwned.com/DomainSearch")
+    add("Leak", C, "HaveIBeenPwned check", d, "https://haveibeenpwned.com/DomainSearch")
     add("Leak", C, "IntelX search", d, f"https://intelx.io/?s={d}")
     add("Leak", C, "Leakix scan", d, f"https://leakix.net/domain/{d}")
 
@@ -837,9 +831,9 @@ def generate_dorks(t: dict, tech: list, kw_raw: str,
     if kw:
         C = "Custom Intelligence"
         for k in kw:
-            add("Google", C, f"Keyword in site", f'site:{d} "{k}"')
-            add("Google", C, f"Keyword in URL", f'site:{d} inurl:{k}')
-            add("Google", C, f"Keyword in file", f'site:{d} "{k}" ext:pdf OR ext:xlsx OR ext:docx OR ext:sql')
+            add("Google", C, "Keyword in site", f'site:{d} "{k}"')
+            add("Google", C, "Keyword in URL", f'site:{d} inurl:{k}')
+            add("Google", C, "Keyword in file", f'site:{d} "{k}" ext:pdf OR ext:xlsx OR ext:docx OR ext:sql')
             add("GitHub", C, f"GitHub: {k}", f'"{k}" "{d}"')
             add("Shodan", C, f"Shodan: {k}", f'ssl:"{d}" "{k}"')
 
@@ -1000,7 +994,7 @@ if go and target_input:
                     for e in wayback_data.get("endpoints", [])[:30]:
                         st.code(e)
                 with c3:
-                    st.markdown(f"**📄 FILE EXTENSIONS**")
+                    st.markdown("**📄 FILE EXTENSIONS**")
                     for e in wayback_data.get("extensions", []):
                         color = "#ff1744" if e in ["env","bak","sql","log","key","pem"] else "#b388ff"
                         st.markdown(f'<div class="live-item" style="color:{color}">.{e}</div>', unsafe_allow_html=True)
